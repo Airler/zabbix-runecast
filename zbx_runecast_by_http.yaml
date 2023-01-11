@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.2'
-  date: '2023-01-11T09:00:31Z'
+  date: '2023-01-11T10:36:06Z'
   template_groups:
     -
       uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
@@ -330,7 +330,7 @@ zabbix_export:
               uuid: 7f2053ba54c7413c8fc843962b2e2630
               name: 'Runecast: {#VCENTER_ADDR}: plugin installed'
               type: DEPENDENT
-              key: 'rc.vcenter.rcplugin.installed["{#VCENTER_ADDR}"]'
+              key: 'runecast.vcenter.rcplugin.installed["{#VCENTER_ADDR}"]'
               delay: '0'
               trends: '0'
               value_type: CHAR
@@ -346,7 +346,7 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: 0750d6b4e0534f5aa52c8a939e915b4c
-                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.installed["{#VCENTER_ADDR}"])<>"true"'
+                  expression: 'last(/Runecast by HTTP/runecast.vcenter.rcplugin.installed["{#VCENTER_ADDR}"])<>"true"'
                   name: '{#VCENTER_ADDR}: Runecast plugin installed'
                   event_name: '{#VCENTER_ADDR}: Runecast plugin installed ({ITEM.LASTVALUE})'
                   priority: WARNING
@@ -354,7 +354,7 @@ zabbix_export:
               uuid: f22e502d86aa4d65aa748844a73ab7a6
               name: 'Runecast: {#VCENTER_ADDR}: plugin latest'
               type: DEPENDENT
-              key: 'rc.vcenter.rcplugin.latest["{#VCENTER_ADDR}"]'
+              key: 'runecast.vcenter.rcplugin.latest["{#VCENTER_ADDR}"]'
               delay: '0'
               trends: '0'
               value_type: CHAR
@@ -370,7 +370,7 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: 3ac8f038bbd94a8ebfd0599c6a479c0c
-                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.latest["{#VCENTER_ADDR}"])<>"true"'
+                  expression: 'last(/Runecast by HTTP/runecast.vcenter.rcplugin.latest["{#VCENTER_ADDR}"])<>"true"'
                   name: '{#VCENTER_ADDR}: Runecast plugin latest'
                   event_name: '{#VCENTER_ADDR}: Runecast plugin latest ({ITEM.LASTVALUE})'
                   priority: INFO
@@ -378,7 +378,7 @@ zabbix_export:
               uuid: e6c3d262b8aa4d5c937768c1e67bcca3
               name: 'Runecast: {#VCENTER_ADDR}: plugin version'
               type: DEPENDENT
-              key: 'rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"]'
+              key: 'runecast.vcenter.rcplugin.version["{#VCENTER_ADDR}"]'
               delay: '0'
               trends: '0'
               value_type: CHAR
@@ -392,7 +392,7 @@ zabbix_export:
               trigger_prototypes:
                 -
                   uuid: c38c8c23f3ca4266b349482a41ac8348
-                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#1)<>last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#2) and length(last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"]))>0'
+                  expression: 'last(/Runecast by HTTP/runecast.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#1)<>last(/Runecast by HTTP/runecast.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#2) and length(last(/Runecast by HTTP/runecast.vcenter.rcplugin.version["{#VCENTER_ADDR}"]))>0'
                   name: '{#VCENTER_ADDR}: Runecast plugin version has changed'
                   event_name: '{#VCENTER_ADDR}: Runecast plugin version has changed (new version: {ITEM.VALUE})'
                   priority: INFO
