@@ -1,0 +1,436 @@
+zabbix_export:
+  version: '6.2'
+  date: '2023-01-11T09:00:31Z'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: 14a4c8a1ef8f4cbb87a5302231f8ac94
+      template: 'Runecast by HTTP'
+      name: 'Runecast by HTTP'
+      description: 'https://blog.runecast.com/blog/runecast-api-boost'
+      groups:
+        -
+          name: Templates/Applications
+      items:
+        -
+          uuid: 8706b5c2480f433db87039c33a5db821
+          name: 'Runecast: Analysis results'
+          type: HTTP_AGENT
+          key: runecast.analysis.results
+          delay: 1h
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.results
+          url: 'https://{HOST.CONN}/rc2/api/v1/results'
+          headers:
+            -
+              name: Authorization
+              value: '{$RUNECAST_API_TOKEN}'
+          tags:
+            -
+              tag: component
+              value: raw
+        -
+          uuid: 3ea0f31274ad4a0b941e091b8531e3c5
+          name: 'Runecast: License info'
+          type: HTTP_AGENT
+          key: runecast.license.info
+          delay: 1h
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          url: 'https://{HOST.CONN}/rc2/api/v1/licenses'
+          headers:
+            -
+              name: Authorization
+              value: '{$RUNECAST_API_TOKEN}'
+          tags:
+            -
+              tag: component
+              value: raw
+        -
+          uuid: 45f4cc68c98647f49b5a19ad13a66112
+          name: 'Runecast: licensed hosts cpus'
+          type: DEPENDENT
+          key: runecast.license.info.licensed.hostcpus
+          delay: '0'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.licensedHostCPUs
+          master_item:
+            key: runecast.license.info
+        -
+          uuid: 38adb63cba95416ca705b9c3f6a32649
+          name: 'Runecast: licensed hosts'
+          type: DEPENDENT
+          key: runecast.license.info.licensed.hosts
+          delay: '0'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.licensedHosts
+          master_item:
+            key: runecast.license.info
+        -
+          uuid: ff5ba1ec3bcd4e0abe358b6b158d03bf
+          name: 'Runecast: unlicensed hosts cpus'
+          type: DEPENDENT
+          key: runecast.license.info.unlicensed.hostcpus
+          delay: '0'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.unlicensedHostCPUs
+          master_item:
+            key: runecast.license.info
+          triggers:
+            -
+              uuid: ae3b3e79a6b643d99475bbac22624e02
+              expression: 'last(/Runecast by HTTP/runecast.license.info.unlicensed.hostcpus)>0'
+              name: 'Unlicensed cpus found'
+              event_name: 'Unlicensed cpus found ({ITEM.VALUE} cpus without license)'
+              url: 'https://{HOST.CONN}/rc2'
+              priority: WARNING
+        -
+          uuid: fae3c21f8bd44843acba9d7d92d1be59
+          name: 'Runecast: unlicensed hosts'
+          type: DEPENDENT
+          key: runecast.license.info.unlicensed.hosts
+          delay: '0'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.unlicensedHosts
+          master_item:
+            key: runecast.license.info
+          triggers:
+            -
+              uuid: 6f5c4b37566c4dceabb3a02af06f7612
+              expression: 'last(/Runecast by HTTP/runecast.license.info.unlicensed.hosts)>0'
+              name: 'Unlicensed hosts found'
+              event_name: 'Unlicensed hosts found ({ITEM.VALUE} hosts without license)'
+              url: 'https://{HOST.CONN}/rc2'
+              priority: WARNING
+        -
+          uuid: 18a5d2ff67fd4e3a800dd27c638847d6
+          name: 'Runecast: vCenter info'
+          type: HTTP_AGENT
+          key: runecast.vcenter.info
+          delay: 1h
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.vcenters
+          url: 'https://{HOST.CONN}/rc2/api/v1/vcenters'
+          headers:
+            -
+              name: Authorization
+              value: '{$RUNECAST_API_TOKEN}'
+          tags:
+            -
+              tag: component
+              value: raw
+      discovery_rules:
+        -
+          uuid: 626bd23977774dfd974532f547bb4248
+          name: 'Analysis discovery'
+          type: DEPENDENT
+          key: runecast.analysis.discovery
+          delay: '0'
+          item_prototypes:
+            -
+              uuid: 24dc4368ce7d419188c41c5fdd28438f
+              name: 'Runecast: Analysis issues'
+              type: DEPENDENT
+              key: 'runecast.analysis.issues["{#ANALYSIS_UID}"]'
+              delay: '0'
+              history: 1h
+              trends: '0'
+              status: DISABLED
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.uid== "{#ANALYSIS_UID}")].issues.first()'
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 6h
+              master_item:
+                key: runecast.analysis.results
+            -
+              uuid: 5a44279d78d24a8298fad112339e8314
+              name: 'Runecast: Analysis scan status'
+              type: DEPENDENT
+              key: 'runecast.analysis.scanstatus["{#ANALYSIS_UID}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              valuemap:
+                name: 'Scan status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.uid== "{#ANALYSIS_UID}")].scanStatus.status.first()'
+              master_item:
+                key: runecast.analysis.results
+              trigger_prototypes:
+                -
+                  uuid: 3e20de2d53514e81967878c6dbbb633f
+                  expression: 'last(/Runecast by HTTP/runecast.analysis.scanstatus["{#ANALYSIS_UID}"])<>"FINISHED_SUCCESSFULLY"'
+                  name: 'Runecast: Analysis scan status'
+                  priority: WARNING
+            -
+              uuid: dd44634d2ae540e993dfd17b9caec4f6
+              name: 'Runecast: last analysis scan'
+              type: DEPENDENT
+              key: 'runecast.analysis.scantimestamp["{#ANALYSIS_UID}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              valuemap:
+                name: 'Scan status'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.uid== "{#ANALYSIS_UID}")].scanStatus.timestamp.first()'
+              master_item:
+                key: runecast.analysis.results
+          master_item:
+            key: runecast.analysis.results
+          lld_macro_paths:
+            -
+              lld_macro: '{#ANALYSIS_ISSUES}'
+              path: $.issues
+            -
+              lld_macro: '{#ANALYSIS_UID}'
+              path: $.uid
+          preprocessing:
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 6h
+        -
+          uuid: a37c04c9262143fa884e012e16a000e9
+          name: 'License detail discovery'
+          type: DEPENDENT
+          key: runecast.license.discovery
+          delay: '0'
+          item_prototypes:
+            -
+              uuid: c85cb5a35833469e97132176eef3d8df
+              name: 'Runecast: License allowed CPUs'
+              type: DEPENDENT
+              key: 'runecast.license.detail.allowedcpus["{#LICENSE_ID}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.licenses.[?(@.id== "{#LICENSE_ID}")].allowedCPUs.first()'
+              master_item:
+                key: runecast.license.info
+            -
+              uuid: ac707d126d6744d79e21bb0313443f5c
+              name: 'Runecast: License used CPUs'
+              type: DEPENDENT
+              key: 'runecast.license.detail.usedcpus["{#LICENSE_ID}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.licenses.[?(@.id== "{#LICENSE_ID}")].usedCPUs.first()'
+              master_item:
+                key: runecast.license.info
+            -
+              uuid: a37b363bc2c34d4ea23d8a6bb2b73496
+              name: 'Runecast: License valid until'
+              type: DEPENDENT
+              key: 'runecast.license.detail.validuntil["{#LICENSE_ID}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.licenses.[?(@.id== "{#LICENSE_ID}")].validUntil.first()'
+              master_item:
+                key: runecast.license.info
+          trigger_prototypes:
+            -
+              uuid: d25bf4b7640842cfac802ad809e59930
+              expression: 'last(/Runecast by HTTP/runecast.license.detail.usedcpus["{#LICENSE_ID}"])>last(/Runecast by HTTP/runecast.license.detail.allowedcpus["{#LICENSE_ID}"])'
+              name: 'Runecast license exceeded'
+              event_name: 'Runecast license has no free CPUs ({ITEM.VALUE1} of {ITEM.VALUE2} CPUs assigned)'
+              priority: AVERAGE
+              manual_close: 'YES'
+              dependencies:
+                -
+                  name: 'Runecast license has no free CPUs'
+                  expression: 'last(/Runecast by HTTP/runecast.license.detail.usedcpus["{#LICENSE_ID}"])=last(/Runecast by HTTP/runecast.license.detail.allowedcpus["{#LICENSE_ID}"])'
+            -
+              uuid: e76f6ce60d6d4374b0213dfbdae8d67d
+              expression: 'last(/Runecast by HTTP/runecast.license.detail.usedcpus["{#LICENSE_ID}"])=last(/Runecast by HTTP/runecast.license.detail.allowedcpus["{#LICENSE_ID}"])'
+              name: 'Runecast license has no free CPUs'
+              event_name: 'Runecast license has no free CPUs ({ITEM.VALUE1} CPUs assigned)'
+              priority: INFO
+              manual_close: 'YES'
+          master_item:
+            key: runecast.license.info
+          lld_macro_paths:
+            -
+              lld_macro: '{#LICENSE_ID}'
+              path: $.id
+            -
+              lld_macro: '{#LICENSE_NAME}'
+              path: $.name
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.licenses
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 6h
+        -
+          uuid: 0f102ad9acff4c53b57e1190640e42ed
+          name: 'vCenter discovery'
+          type: DEPENDENT
+          key: runecast.vcenter.discovery
+          delay: '0'
+          item_prototypes:
+            -
+              uuid: 7f2053ba54c7413c8fc843962b2e2630
+              name: 'Runecast: {#VCENTER_ADDR}: plugin installed'
+              type: DEPENDENT
+              key: 'rc.vcenter.rcplugin.installed["{#VCENTER_ADDR}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              valuemap:
+                name: true/false
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.installed.first()'
+              master_item:
+                key: runecast.vcenter.info
+              trigger_prototypes:
+                -
+                  uuid: 0750d6b4e0534f5aa52c8a939e915b4c
+                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.installed["{#VCENTER_ADDR}"])<>"true"'
+                  name: '{#VCENTER_ADDR}: Runecast plugin installed'
+                  event_name: '{#VCENTER_ADDR}: Runecast plugin installed ({ITEM.LASTVALUE})'
+                  priority: WARNING
+            -
+              uuid: f22e502d86aa4d65aa748844a73ab7a6
+              name: 'Runecast: {#VCENTER_ADDR}: plugin latest'
+              type: DEPENDENT
+              key: 'rc.vcenter.rcplugin.latest["{#VCENTER_ADDR}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              valuemap:
+                name: true/false
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.latest.first()'
+              master_item:
+                key: runecast.vcenter.info
+              trigger_prototypes:
+                -
+                  uuid: 3ac8f038bbd94a8ebfd0599c6a479c0c
+                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.latest["{#VCENTER_ADDR}"])<>"true"'
+                  name: '{#VCENTER_ADDR}: Runecast plugin latest'
+                  event_name: '{#VCENTER_ADDR}: Runecast plugin latest ({ITEM.LASTVALUE})'
+                  priority: INFO
+            -
+              uuid: e6c3d262b8aa4d5c937768c1e67bcca3
+              name: 'Runecast: {#VCENTER_ADDR}: plugin version'
+              type: DEPENDENT
+              key: 'rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"]'
+              delay: '0'
+              trends: '0'
+              value_type: CHAR
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.version.first()'
+              master_item:
+                key: runecast.vcenter.info
+              trigger_prototypes:
+                -
+                  uuid: c38c8c23f3ca4266b349482a41ac8348
+                  expression: 'last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#1)<>last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"],#2) and length(last(/Runecast by HTTP/rc.vcenter.rcplugin.version["{#VCENTER_ADDR}"]))>0'
+                  name: '{#VCENTER_ADDR}: Runecast plugin version has changed'
+                  event_name: '{#VCENTER_ADDR}: Runecast plugin version has changed (new version: {ITEM.VALUE})'
+                  priority: INFO
+                  manual_close: 'YES'
+          master_item:
+            key: runecast.vcenter.info
+          lld_macro_paths:
+            -
+              lld_macro: '{#VCENTER_ADDR}'
+              path: $.address
+          preprocessing:
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 6h
+      macros:
+        -
+          macro: '{$RUNECAST_API_TOKEN}'
+          type: SECRET_TEXT
+          description: 'Go to Settings > API Access Tokens on your Runecast instance'
+      valuemaps:
+        -
+          uuid: 0be092c0bf434e38bd33a6cdc8122486
+          name: 'Scan status'
+          mappings:
+            -
+              value: FINISHED_SUCCESSFULLY
+              newvalue: OK
+            -
+              type: DEFAULT
+              newvalue: 'NOT OK'
+        -
+          uuid: 9972a20fb71d4176a7c839a67018693c
+          name: true/false
+          mappings:
+            -
+              value: 'true'
+              newvalue: OK
+            -
+              value: 'false'
+              newvalue: 'NOT OK'
