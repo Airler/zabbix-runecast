@@ -1,6 +1,6 @@
 zabbix_export:
   version: '6.2'
-  date: '2023-01-11T10:36:06Z'
+  date: '2023-01-11T11:03:43Z'
   template_groups:
     -
       uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
@@ -69,6 +69,10 @@ zabbix_export:
                 - $.licensedHostCPUs
           master_item:
             key: runecast.license.info
+          tags:
+            -
+              tag: component
+              value: health
         -
           uuid: 38adb63cba95416ca705b9c3f6a32649
           name: 'Runecast: licensed hosts'
@@ -82,6 +86,10 @@ zabbix_export:
                 - $.licensedHosts
           master_item:
             key: runecast.license.info
+          tags:
+            -
+              tag: component
+              value: health
         -
           uuid: ff5ba1ec3bcd4e0abe358b6b158d03bf
           name: 'Runecast: unlicensed hosts cpus'
@@ -95,6 +103,10 @@ zabbix_export:
                 - $.unlicensedHostCPUs
           master_item:
             key: runecast.license.info
+          tags:
+            -
+              tag: component
+              value: health
           triggers:
             -
               uuid: ae3b3e79a6b643d99475bbac22624e02
@@ -103,6 +115,10 @@ zabbix_export:
               event_name: 'Unlicensed cpus found ({ITEM.VALUE} cpus without license)'
               url: 'https://{HOST.CONN}/rc2'
               priority: WARNING
+              tags:
+                -
+                  tag: scope
+                  value: health
         -
           uuid: fae3c21f8bd44843acba9d7d92d1be59
           name: 'Runecast: unlicensed hosts'
@@ -116,6 +132,10 @@ zabbix_export:
                 - $.unlicensedHosts
           master_item:
             key: runecast.license.info
+          tags:
+            -
+              tag: component
+              value: health
           triggers:
             -
               uuid: 6f5c4b37566c4dceabb3a02af06f7612
@@ -124,6 +144,10 @@ zabbix_export:
               event_name: 'Unlicensed hosts found ({ITEM.VALUE} hosts without license)'
               url: 'https://{HOST.CONN}/rc2'
               priority: WARNING
+              tags:
+                -
+                  tag: scope
+                  value: health
         -
           uuid: 18a5d2ff67fd4e3a800dd27c638847d6
           name: 'Runecast: vCenter info'
@@ -176,6 +200,10 @@ zabbix_export:
                     - 6h
               master_item:
                 key: runecast.analysis.results
+              tags:
+                -
+                  tag: component
+                  value: raw
             -
               uuid: 5a44279d78d24a8298fad112339e8314
               name: 'Runecast: Analysis scan status'
@@ -193,12 +221,20 @@ zabbix_export:
                     - '$.[?(@.uid== "{#ANALYSIS_UID}")].scanStatus.status.first()'
               master_item:
                 key: runecast.analysis.results
+              tags:
+                -
+                  tag: component
+                  value: health
               trigger_prototypes:
                 -
                   uuid: 3e20de2d53514e81967878c6dbbb633f
                   expression: 'last(/Runecast by HTTP/runecast.analysis.scanstatus["{#ANALYSIS_UID}"])<>"FINISHED_SUCCESSFULLY"'
                   name: 'Runecast: Analysis scan status'
                   priority: WARNING
+                  tags:
+                    -
+                      tag: scope
+                      value: health
             -
               uuid: dd44634d2ae540e993dfd17b9caec4f6
               name: 'Runecast: last analysis scan'
@@ -252,6 +288,10 @@ zabbix_export:
                     - '$.licenses.[?(@.id== "{#LICENSE_ID}")].allowedCPUs.first()'
               master_item:
                 key: runecast.license.info
+              tags:
+                -
+                  tag: component
+                  value: health
             -
               uuid: ac707d126d6744d79e21bb0313443f5c
               name: 'Runecast: License used CPUs'
@@ -267,6 +307,10 @@ zabbix_export:
                     - '$.licenses.[?(@.id== "{#LICENSE_ID}")].usedCPUs.first()'
               master_item:
                 key: runecast.license.info
+              tags:
+                -
+                  tag: component
+                  value: health
             -
               uuid: a37b363bc2c34d4ea23d8a6bb2b73496
               name: 'Runecast: License valid until'
@@ -282,6 +326,10 @@ zabbix_export:
                     - '$.licenses.[?(@.id== "{#LICENSE_ID}")].validUntil.first()'
               master_item:
                 key: runecast.license.info
+              tags:
+                -
+                  tag: component
+                  value: health
           trigger_prototypes:
             -
               uuid: d25bf4b7640842cfac802ad809e59930
@@ -294,6 +342,10 @@ zabbix_export:
                 -
                   name: 'Runecast license has no free CPUs'
                   expression: 'last(/Runecast by HTTP/runecast.license.detail.usedcpus["{#LICENSE_ID}"])=last(/Runecast by HTTP/runecast.license.detail.allowedcpus["{#LICENSE_ID}"])'
+              tags:
+                -
+                  tag: scope
+                  value: health
             -
               uuid: e76f6ce60d6d4374b0213dfbdae8d67d
               expression: 'last(/Runecast by HTTP/runecast.license.detail.usedcpus["{#LICENSE_ID}"])=last(/Runecast by HTTP/runecast.license.detail.allowedcpus["{#LICENSE_ID}"])'
@@ -301,6 +353,10 @@ zabbix_export:
               event_name: 'Runecast license has no free CPUs ({ITEM.VALUE1} CPUs assigned)'
               priority: INFO
               manual_close: 'YES'
+              tags:
+                -
+                  tag: scope
+                  value: notice
           master_item:
             key: runecast.license.info
           lld_macro_paths:
@@ -343,6 +399,10 @@ zabbix_export:
                     - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.installed.first()'
               master_item:
                 key: runecast.vcenter.info
+              tags:
+                -
+                  tag: component
+                  value: health
               trigger_prototypes:
                 -
                   uuid: 0750d6b4e0534f5aa52c8a939e915b4c
@@ -350,6 +410,10 @@ zabbix_export:
                   name: '{#VCENTER_ADDR}: Runecast plugin installed'
                   event_name: '{#VCENTER_ADDR}: Runecast plugin installed ({ITEM.LASTVALUE})'
                   priority: WARNING
+                  tags:
+                    -
+                      tag: scope
+                      value: health
             -
               uuid: f22e502d86aa4d65aa748844a73ab7a6
               name: 'Runecast: {#VCENTER_ADDR}: plugin latest'
@@ -367,6 +431,10 @@ zabbix_export:
                     - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.latest.first()'
               master_item:
                 key: runecast.vcenter.info
+              tags:
+                -
+                  tag: component
+                  value: health
               trigger_prototypes:
                 -
                   uuid: 3ac8f038bbd94a8ebfd0599c6a479c0c
@@ -374,6 +442,13 @@ zabbix_export:
                   name: '{#VCENTER_ADDR}: Runecast plugin latest'
                   event_name: '{#VCENTER_ADDR}: Runecast plugin latest ({ITEM.LASTVALUE})'
                   priority: INFO
+                  tags:
+                    -
+                      tag: scope
+                      value: health
+                    -
+                      tag: scope
+                      value: notice
             -
               uuid: e6c3d262b8aa4d5c937768c1e67bcca3
               name: 'Runecast: {#VCENTER_ADDR}: plugin version'
@@ -389,6 +464,10 @@ zabbix_export:
                     - '$.[?(@.address == "{#VCENTER_ADDR}")].webClientPluginStatus.version.first()'
               master_item:
                 key: runecast.vcenter.info
+              tags:
+                -
+                  tag: component
+                  value: health
               trigger_prototypes:
                 -
                   uuid: c38c8c23f3ca4266b349482a41ac8348
@@ -397,6 +476,13 @@ zabbix_export:
                   event_name: '{#VCENTER_ADDR}: Runecast plugin version has changed (new version: {ITEM.VALUE})'
                   priority: INFO
                   manual_close: 'YES'
+                  tags:
+                    -
+                      tag: scope
+                      value: health
+                    -
+                      tag: scope
+                      value: notice
           master_item:
             key: runecast.vcenter.info
           lld_macro_paths:
@@ -408,11 +494,18 @@ zabbix_export:
               type: DISCARD_UNCHANGED_HEARTBEAT
               parameters:
                 - 6h
+      tags:
+        -
+          tag: class
+          value: software
+        -
+          tag: target
+          value: runecast
       macros:
         -
           macro: '{$RUNECAST_API_TOKEN}'
           type: SECRET_TEXT
-          description: 'Go to Settings > API Access Tokens on your Runecast instance'
+          description: 'Go to Settings > API Access Tokens on your Runecast instance. Token only needs read permissions.'
       valuemaps:
         -
           uuid: 0be092c0bf434e38bd33a6cdc8122486
